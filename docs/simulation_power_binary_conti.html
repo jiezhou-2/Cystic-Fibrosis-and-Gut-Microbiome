@@ -9,10 +9,10 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Siming Zhao" />
+<meta name="author" content="Jie Zhou" />
 
 
-<title>Power analysis based on simulations</title>
+<title>Diffdriver simulation study</title>
 
 <script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -356,8 +356,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Power analysis based on simulations</h1>
-<h4 class="author">Siming Zhao</h4>
+<h1 class="title toc-ignore">Diffdriver simulation study</h1>
+<h4 class="author">Jie Zhou</h4>
+<h4 class="date">4/7/2022</h4>
 
 </div>
 
@@ -505,7 +506,7 @@ Note that any generated files, e.g. HTML, png, CSS, etc., are not included in t
 <div id="versions" class="tab-pane fade">
 
 <p>
-These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/simulation_power.Rmd</code>) and HTML (<code>docs/simulation_power.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/simulation_power_binary_conti.Rmd</code>) and HTML (<code>docs/simulation_power_binary_conti.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
 </p>
 <div class="table-responsive">
 <table class="table table-condensed table-hover">
@@ -534,24 +535,7 @@ Message
 Rmd
 </td>
 <td>
-<a href="https://github.com/jiezhou-2/Cystic-Fibrosis-and-Gut-Microbiome/blob/a79d4c01c349ee230c8b42514cbec25881fcbbfc/analysis/simulation_power.Rmd" target="_blank">a79d4c0</a>
-</td>
-<td>
-Jie Zhou
-</td>
-<td>
-2022-04-09
-</td>
-<td>
-microbe
-</td>
-</tr>
-<tr>
-<td>
-html
-</td>
-<td>
-<a href="https://rawcdn.githack.com/jiezhou-2/Cystic-Fibrosis-and-Gut-Microbiome/a79d4c01c349ee230c8b42514cbec25881fcbbfc/docs/simulation_power.html" target="_blank">a79d4c0</a>
+<a href="https://github.com/jiezhou-2/Cystic-Fibrosis-and-Gut-Microbiome/blob/a79d4c01c349ee230c8b42514cbec25881fcbbfc/analysis/simulation_power_binary_conti.Rmd" target="_blank">a79d4c0</a>
 </td>
 <td>
 Jie Zhou
@@ -570,91 +554,33 @@ microbe
 </div>
 </div>
 </div>
-<div id="methods" class="section level2">
-<h2>Methods</h2>
-<p>There are several approaches to identify genes associated with certain phenotypes.</p>
-<div id="multi-linear-regression-anova" class="section level3">
-<h3>1. Multi-linear regression (ANOVA)</h3>
-<p>This was the approach used by domainXplorer (<a href="http://cancerimmunolres.aacrjournals.org/content/early/2016/07/09/2326-6066.CIR-15-0233">Porta-Pardo and Godzik, 2016</a>). The software is available <a href="https://github.com/eduardporta/domainXplorer">here</a>.</p>
-<p>Let <span class="math inline">\(E_i\)</span> be some form of immune score for tumor sample <span class="math inline">\(i\)</span>, <span class="math inline">\(T_i\)</span> is the tumor type for sample <span class="math inline">\(i\)</span>, <span class="math inline">\(N_i\)</span> is the total number of mutations in sample <span class="math inline">\(i\)</span> (or mutation rate)., <span class="math inline">\(D_{jg}\)</span> is the binary indicator of the mutation status for gene <span class="math inline">\(g\)</span> in sample <span class="math inline">\(i\)</span>. For each <span class="math inline">\(i\)</span>, we have the following model (for simplicity, omiting <span class="math inline">\(i\)</span>)</p>
-<p><span class="math display">\[ E = \beta_0 + \beta_1 * T + \beta_2* N + \beta_3 *D_g. \]</span> In the next step, <em>p</em> value is obtained by ANOVA test.</p>
-<p>In <a href="https://www.sciencedirect.com/science/article/pii/S0092867418303131?via%3Dihub">Ding et al 2018 cell</a>, domainXplorer was used to identify driver events that correlate with the presence of different immune cell types. So <span class="math inline">\(E\)</span> is the cell type fraction. In <a href="https://www.sciencedirect.com/science/article/pii/S0092867414016390?via%3Dihub">Rooney et al 2015 cell</a>, <span class="math inline">\(E\)</span> is rank transformed CYT (cytolytic activity defined based on gene expression).</p>
+<div id="binary-phenotype" class="section level2">
+<h2>Binary phenotype</h2>
+<p>In this section, we assume the phenotype <span class="math inline">\(E\)</span> is binary variable. First we consider the performance using the original definition of parameter for baseline model. Then we use the average of missense mutation rate, nonsense mutation rate as the definition of parameter in baseline model and re-run the model.</p>
+<div id="old-parameter-for-baseline-model" class="section level3">
+<h3>Old parameter for baseline model</h3>
+<p>In this section, we assume for phenotype <span class="math inline">\(E\)</span>, <span class="math inline">\(P(E=0)=P(E=1)=0.5\)</span>. For <span class="math inline">\(E=1\)</span>, the selection probability is 0.8, and for <span class="math inline">\(E=0\)</span>, the selection probability is 0.2. Two Missense mutation rate increase induced by selection, (0, 1.2), are considered. Nonsense mutation rate is higer than missense mutation rate by 1.5 on logarithmic scale. On log scale, for background mutation rate <span class="math inline">\(f_0\)</span>, we consider two cases, <span class="math inline">\(f_0=0,1\)</span>. For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate.</p>
+<p><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-1-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-1-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-1-4.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<div id="modeling-of-count-data-countlrt" class="section level3">
-<h3>2. Modeling of count data (CountLRT)</h3>
-<p>We propose a new approach to address this problem. Let <span class="math inline">\(Y_{ij}\)</span> be the number of mutations at position <span class="math inline">\(j\)</span>, sample <span class="math inline">\(i\)</span>, <span class="math inline">\(Y_{ij} \in \{0,1\}\)</span>. <span class="math inline">\(\mu_{ij}\)</span> is background mutation rate at position <span class="math inline">\(j\)</span>, sample <span class="math inline">\(i\)</span>.</p>
-<p><span class="math display">\[Y_{ij} \sim Bernoulli(\mu_{ij}\delta_{ij})\]</span> Here <span class="math inline">\(\delta_{ij}\)</span> is the deviation of observed mutation rate from the background mutation rate. It is dependent on the sample’s immune score <span class="math inline">\(E_i\)</span> in the following way:</p>
-<p><span class="math display">\[ log(\delta_{ij})=\beta_{ij}^0 + \beta_g*E_{i} \]</span></p>
-<p><span class="math inline">\(\beta_g\)</span> is gene <span class="math inline">\(g\)</span>’s coefficient for <span class="math inline">\(E_i\)</span>. For the null model, <span class="math inline">\(\beta_g=0\)</span>. For the alternative model, we could get Maximum Likelihood Estimation for <span class="math inline">\(\beta_g\)</span> and get Bayes Factor for gene <span class="math inline">\(g\)</span>.</p>
-<p>In our approach, we can take into account confounders by modeling <span class="math inline">\(\mu_{ij}\)</span> and <span class="math inline">\(\beta_{ij}^0\)</span>.</p>
-</div>
-<div id="binomial-test" class="section level3">
-<h3>3. Binomial test</h3>
-<p>This method only works for binary <span class="math inline">\(E_i\)</span> data. In this approach, we aggregate all positions in a gene and count the number of mutations in <span class="math inline">\(E_i=1\)</span> (<span class="math inline">\(N_1\)</span>) and <span class="math inline">\(E_i=0\)</span> (<span class="math inline">\(N_2\)</span>) groups, we assess if <span class="math inline">\(N_1\)</span> deviates from <span class="math inline">\(Binom(N_1+N_2, \frac{\#\{E_i=1\}} {\#\{E_i=1\} + \#\{E_i=0\}})\)</span>.</p>
-</div>
-<div id="logistic-regression-gene-level" class="section level3">
-<h3>4. logistic regression (gene level)</h3>
-<p>This method only works for binary <span class="math inline">\(E_i\)</span> data.</p>
-<p><span class="math display">\[log(\frac{p(E_i=1)}{1-p(E_i=1)})= \beta * D_i +\beta_0\]</span></p>
-</div>
-<div id="fishers-exact-test" class="section level3">
-<h3>5. Fisher’s exact test</h3>
-<p>This method only works for binary <span class="math inline">\(E_i\)</span> data. In this approach, we aggregate all positions in a gene and count the number of mutations in <span class="math inline">\(E_i=1\)</span> (<span class="math inline">\(N_1\)</span>) and <span class="math inline">\(E_i=0\)</span> (<span class="math inline">\(N_2\)</span>) groups then use Fisher exact test a p value.</p>
+<div id="new-parameter-for-baseline-model" class="section level3">
+<h3>New parameter for baseline model</h3>
+<p>In this section, we assume for phenotype <span class="math inline">\(E\)</span>, <span class="math inline">\(P(E=0)=P(E=1)=0.5\)</span>. For <span class="math inline">\(E=1\)</span>, the selection probability is 0.8, and for <span class="math inline">\(E=0\)</span>, the selection probability is 0.2. Two Missense mutation rate, (0, 1.2), are considered. Nonsense mutation rate is higer than missense mutation rate by 1.5 in logarithmic scale. On log scale, for background mutation rate <span class="math inline">\(f_0\)</span>, we consider two cases, <span class="math inline">\(f_0=0,1\)</span>. For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate.</p>
+<p><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-2-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-2-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-2-4.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
-<div id="simulation" class="section level2">
-<h2>Simulation</h2>
-<p>In this simulation, we assume no gene specific effect of background mutation rate, i.e. no <span class="math inline">\(\lambda_g\)</span> term for background mutation rate. Within the same gene, we assume all non-silent positions share the same selection mutation rate across positions, i.e does not distinguish functional positions from the rest non-silent positions.</p>
-<p><strong>Generate data</strong></p>
-<ul>
-<li><p>Generate <span class="math inline">\(E_i\)</span>. For a given sample size <span class="math inline">\(N\)</span>, we assign <span class="math inline">\(N/2\)</span> samples with <span class="math inline">\(E=1\)</span>, the rest have <span class="math inline">\(E=0\)</span></p></li>
-<li><p>Generate <span class="math inline">\(Y_{ij}\)</span>. We randomly pick one gene, <em>ERBB3</em>. For <span class="math inline">\(Y_{ij}\)</span> in this gene, we simulate silent mutations based on realistic parameters estimated from UCS data using driverMAPS. We simulate nonsilent mutations with <span class="math inline">\(\beta_{ij}^0=0\)</span> (this implies that on average this gene is not selected) or <span class="math inline">\(\beta_{ij}^0=1\)</span> (this implies that on average this gene is positively selected). We simulate with <span class="math inline">\(\beta_{g(j)}=\{0,0.2,0.8\}\)</span>. <span class="math inline">\(\beta_{g(j)}=0\)</span> indicates that this gene is not associated with the phenotype. Repeat this process 1000 times.</p></li>
-</ul>
-<p><strong>Run analysis</strong><br />
-We run five methods for each of the 5000 times and obtain p values (for method 2, p values are obtained by likelihood ratio tests). Compare number of rounds with p value &lt;0.01 for these methods.</p>
-<p>We assume all samples come from the same tumor type and the mutation rate in each sample is the same. For method 2, we didn’t estimate mutation rate for each sample, but used the mutation rate from simulation.</p>
+<div id="continuous-phynotype" class="section level2">
+<h2>Continuous phynotype</h2>
+<div id="old-parameter-for-baseline-model-1" class="section level3">
+<h3>Old parameter for baseline model</h3>
+<p>In this section, we assume <span class="math inline">\(E_i\sim N(\mu,\sigma^2)\)</span> with <span class="math inline">\(\mu=0, \sigma=5\)</span>. The relationship between <span class="math inline">\(E_i\)</span> and the samples under selection is given by <span class="math display">\[\log\frac{\pi_i}{1-\pi_i}=\alpha_0+\alpha_1 E_i,\]</span> where <span class="math inline">\(\pi_i\)</span> represents the probability of sample coming under selection. Here parameters are set as <span class="math inline">\(\alpha_0=0.1, \alpha_1=1\)</span>.<br />
+On log scale, for background mutation rate <span class="math inline">\(f_0\)</span>, we consider two cases, <span class="math inline">\(f_0=0,1\)</span>. For samples under selection, the increase of missense mutation rate are <span class="math inline">\(f_m=0,1.2\)</span>. The increase of nonsense mutation rate are fixed at <span class="math inline">\(f_{non}=1.51\)</span>. For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate.</p>
+<p><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-3-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-3-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-3-4.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<div id="results" class="section level2">
-<h2>Results</h2>
-<div id="gene-is-not-associated-with-phenotype-beta_g0-." class="section level3">
-<h3>gene is not associated with phenotype ( <span class="math inline">\(\beta_g=0\)</span> ).</h3>
-<p>In this simulation, the mutation data was generated with <span class="math inline">\(\beta_{ij}^0=0\)</span> and <span class="math inline">\(\beta_g=0\)</span>. We treat all position <span class="math inline">\(i\)</span> with the same relative risk,i.e. didn’t account for different functional impacts of among positions.</p>
-<div class="figure">
-<img src="../figures/power_betaf0=0_betagc=0.png" alt="" />
-<p class="caption">null</p>
-</div>
-</div>
-<div id="gene-with-low-mutation-rate-and-weakly-associated-with-phenotype-beta_ij00-and-beta_g0.2-." class="section level3">
-<h3>gene with low mutation rate and weakly associated with phenotype ( <span class="math inline">\(\beta_{ij}^0=0\)</span> and <span class="math inline">\(\beta_g=0.2\)</span> ).</h3>
-<p>In this simulation, the mutation data was generated with <span class="math inline">\(\beta_{ij}^0=0\)</span> and <span class="math inline">\(\beta_g=0.2\)</span>.</p>
-<div class="figure">
-<img src="../figures/power_betaf0=0_betagc=0.2.png" alt="" />
-<p class="caption">lowweak</p>
-</div>
-</div>
-<div id="gene-with-low-mutation-rate-and-strongly-associated-with-phenotype-beta_ij00-and-beta_g0.8-." class="section level3">
-<h3>gene with low mutation rate and strongly associated with phenotype ( <span class="math inline">\(\beta_{ij}^0=0\)</span> and <span class="math inline">\(\beta_g=0.8\)</span> ).</h3>
-<p>In this simulation, the mutation data was generated with <span class="math inline">\(\beta_{ij}^0=0\)</span> and <span class="math inline">\(\beta_g=0.8\)</span>.</p>
-<div class="figure">
-<img src="../figures/power_betaf0=0_betagc=0.8.png" alt="" />
-<p class="caption">lowstrong</p>
-</div>
-</div>
-<div id="gene-with-high-mutation-rate-and-weakly-associated-with-phenotype-beta_ij01-and-beta_g0.2-." class="section level3">
-<h3>gene with high mutation rate and weakly associated with phenotype ( <span class="math inline">\(\beta_{ij}^0=1\)</span> and <span class="math inline">\(\beta_g=0.2\)</span> ).</h3>
-<p>In this simulation, the mutation data was generated with <span class="math inline">\(\beta_{ij}^0=1\)</span> and <span class="math inline">\(\beta_g=0.2\)</span>.</p>
-<div class="figure">
-<img src="../figures/power_betaf0=1_betagc=0.2.png" alt="" />
-<p class="caption">highweak</p>
-</div>
-</div>
-<div id="gene-with-high-mutation-rate-and-strongly-associated-with-phenotype-beta_ij01-and-beta_g0.8-." class="section level3">
-<h3>gene with high mutation rate and strongly associated with phenotype ( <span class="math inline">\(\beta_{ij}^0=1\)</span> and <span class="math inline">\(\beta_g=0.8\)</span> ).</h3>
-<p>In this simulation, the mutation data was generated with <span class="math inline">\(\beta_{ij}^0=1\)</span> and <span class="math inline">\(\beta_g=0.8\)</span>.</p>
-<div class="figure">
-<img src="../figures/power_betaf0=1_betagc=0.8.png" alt="" />
-<p class="caption">highstrong</p>
-</div>
+<div id="new-parameter-for-baseline-model-1" class="section level3">
+<h3>New parameter for baseline model</h3>
+<p>In this section, we assume <span class="math inline">\(E_i\sim N(\mu,\sigma^2)\)</span> with <span class="math inline">\(\mu=0, \sigma=5\)</span>. The relationship between <span class="math inline">\(E_i\)</span> and the samples under selection is given by <span class="math display">\[\log\frac{\pi_i}{1-\pi_i}=\alpha_0+\alpha_1 E_i,\]</span> where <span class="math inline">\(\pi_i\)</span> represents the probability of sample coming under selection. Here parameters are set as <span class="math inline">\(\alpha_0=0.1, \alpha_1=1\)</span>.<br />
+On log scale, for background mutation rate <span class="math inline">\(f_0\)</span>, we consider two cases, <span class="math inline">\(f_0=0,1\)</span>. For samples under selection, the increase of missense mutation rate are <span class="math inline">\(f_m=0,1.2\)</span>. The increase of nonsense mutation rate are fixed at <span class="math inline">\(f_{non}=1.51\)</span>. For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate.</p>
+<p><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-4-2.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-4-3.png" width="672" style="display: block; margin: auto;" /><img src="figure/simulation_power_binary_conti.Rmd/unnamed-chunk-4-4.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -662,6 +588,7 @@ We run five methods for each of the 5000 times and obtain p values (for method 2
 </button>
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 4.1.2 (2021-11-01)
 Platform: x86_64-w64-mingw32/x64 (64-bit)
 Running under: Windows 10 x64 (build 19043)
@@ -681,14 +608,15 @@ attached base packages:
 loaded via a namespace (and not attached):
  [1] Rcpp_1.0.8       rstudioapi_0.13  whisker_0.4      knitr_1.37      
  [5] magrittr_2.0.2   workflowr_1.7.0  R6_2.5.1         rlang_1.0.1     
- [9] fastmap_1.1.0    fansi_1.0.2      stringr_1.4.0    tools_4.1.2     
-[13] xfun_0.29        utf8_1.2.2       cli_3.1.1        git2r_0.29.0    
-[17] jquerylib_0.1.4  htmltools_0.5.2  ellipsis_0.3.2   rprojroot_2.0.2 
-[21] yaml_2.2.2       digest_0.6.29    tibble_3.1.6     lifecycle_1.0.1 
-[25] crayon_1.5.0     later_1.3.0      sass_0.4.0       vctrs_0.3.8     
-[29] promises_1.2.0.1 fs_1.5.2         glue_1.6.1       evaluate_0.14   
-[33] rmarkdown_2.11   stringi_1.7.6    bslib_0.3.1      compiler_4.1.2  
-[37] pillar_1.7.0     jsonlite_1.7.3   httpuv_1.6.5     pkgconfig_2.0.3 </code></pre>
+ [9] fastmap_1.1.0    fansi_1.0.2      highr_0.9        stringr_1.4.0   
+[13] tools_4.1.2      xfun_0.29        utf8_1.2.2       cli_3.1.1       
+[17] git2r_0.29.0     jquerylib_0.1.4  htmltools_0.5.2  ellipsis_0.3.2  
+[21] rprojroot_2.0.2  yaml_2.2.2       digest_0.6.29    tibble_3.1.6    
+[25] lifecycle_1.0.1  crayon_1.5.0     later_1.3.0      sass_0.4.0      
+[29] vctrs_0.3.8      promises_1.2.0.1 fs_1.5.2         glue_1.6.1      
+[33] evaluate_0.14    rmarkdown_2.11   stringi_1.7.6    bslib_0.3.1     
+[37] compiler_4.1.2   pillar_1.7.0     jsonlite_1.7.3   httpuv_1.6.5    
+[41] pkgconfig_2.0.3 </code></pre>
 </div>
 </div>
 </div>
