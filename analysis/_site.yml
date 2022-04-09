@@ -1,7 +1,7 @@
-name: "DiffDriver"
+name: "Cystic-Fibrosis-and-Gut-Microbiome"
 output_dir: "../docs"
 navbar:
-  title: "DiffDriver"
+  title: "Cystic-Fibrosis-and-Gut-Microbiome"
   left:
     - text: "Home"
       href: index.html
@@ -11,7 +11,7 @@ navbar:
       href: license.html
   right:
     - icon: fa-github
-      href: https://github.com/szhaolab/diff_driver_analysis
+      href: https://github.com/jiezhou-2/Cystic-Fibrosis-and-Gut-Microbiome.git
 output:
   workflowr::wflow_html:
     toc: true
