@@ -1,0 +1,200 @@
+---
+title: "Diffdriver simulation study"
+author: "Jie Zhou"
+date: "4/7/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+## Binary phenotype
+
+In this section, we assume the phenotype $E$ is binary variable. First we consider the performance using the original definition of parameter for baseline model. Then we use the average of missense mutation rate, nonsense mutation rate as the   definition of parameter in baseline model and re-run the model.  
+
+### Old parameter for baseline model
+
+In this section, we assume for phenotype $E$,  $P(E=0)=P(E=1)=0.5$. For $E=1$, the selection probability is 0.8, and for $E=0$, the selection probability is 0.2. Two Missense mutation rate increase induced by selection, (0, 1.2), are considered. Nonsense mutation rate is higer than missense mutation rate by 1.5 on logarithmic scale.  On log scale, for background mutation rate $f_0$, we consider two cases,  $f_0=0,1$.  For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate. 
+
+```{r,echo=FALSE}
+Nsim=100
+mylist <- list()
+for (i1 in c(0, 1)){
+  for (i2 in c(0, 1.2)){
+    n<-0
+    for(i3 in c(400, 800, 1600)){
+      n <- n+1
+      load(paste0("C:/Users/Jie Zhou/Documents/paper02052022/siming_lab/diff_driver_analysis-main/data/binary_old/power_betaf0=",i1,"_betagc=",i2, "_sample",i3,".Rd"))
+      m1.pvalue<-  simures[["m1.pvalue"]]
+      m2.pvalue <- simures[["m2.pvalue"]]
+      m4.pvalue <- simures[["m4.pvalue"]]
+      m6.pvalue <- simures[["m5.pvalue"]]
+      m7.pvalue <- simures[["m6.pvalue"]]
+      mylist[[n]] <- c(length(m1.pvalue[m1.pvalue <0.01]),length(m2.pvalue[m2.pvalue <0.01]),length(m4.pvalue[m4.pvalue <0.01]), length(m6.pvalue[m6.pvalue <0.01]), length(m7.pvalue[m7.pvalue <0.01]))
+    }
+    outdt <- do.call(cbind, mylist)
+    colnames(outdt) <- c(400, 800, 1600)
+    mycol=c("#00AFBB","#2b8cbe","#fdae61","#FF3D2E","darkgreen")
+    #plot(1:dim(outdt)[2],ylim=c(0,max(outdt)*1.1), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+   
+     plot(1:dim(outdt)[2],ylim=c(0,100), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+      # title(paste("f0=",i1,",", "beta_gc=(",i2,",","1.513", ")", "P(E=1) =0.5", "P(positive selection|E=1)=0.8", "P(positive selection|E=1)=0.2", sep=" "))
+     title(paste("f0=",i1,",", "beta_gc=(",i2,",","1.513", ")",  sep=" "))
+    #yticks_val <- pretty(outdt)
+    yticks_val <- seq(0,100,20)
+    #axis(2, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(2, at=yticks_val, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(1, at=1:dim(outdt)[2], lab=colnames(outdt))
+    grid()
+    for (r in 1:5){
+      points(outdt[r,],col=mycol[r], pch=19, cex=1.3)
+      lines(outdt[r,],col=mycol[r])
+    }
+    legend("topleft", legend = c("LinearR","LogisticR","Fisher","diffDriver","diffDriver-baseline"), col= mycol, lwd=1, bty="n", lty=rep(NA,5), pch=rep(19,5))
+
+  }
+}
+
+```
+
+
+### New parameter for baseline model
+
+
+In this section, we assume for phenotype $E$,  $P(E=0)=P(E=1)=0.5$. For $E=1$, the selection probability is 0.8, and for $E=0$, the selection probability is 0.2. Two Missense mutation rate, (0, 1.2), are considered. Nonsense mutation rate is higer than missense mutation rate by 1.5 in logarithmic scale.  On log scale, for background mutation rate $f_0$, we consider two cases,  $f_0=0,1$.  For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate. 
+
+```{r,echo=FALSE}
+Nsim=100
+mylist <- list()
+for (i1 in c(0, 1)){
+  for (i2 in c(0, 1.2)){
+    n<-0
+    for(i3 in c(400, 800, 1600)){
+      n <- n+1
+      load(paste0("C:/Users/Jie Zhou/Documents/paper02052022/siming_lab/diff_driver_analysis-main/data/binary_new/power_betaf0=",i1,"_betagc=",i2, "_sample",i3,".Rd"))
+      m1.pvalue<-  simures[["m1.pvalue"]]
+      m2.pvalue <- simures[["m2.pvalue"]]
+      m4.pvalue <- simures[["m4.pvalue"]]
+      m6.pvalue <- simures[["m5.pvalue"]]
+      m7.pvalue <- simures[["m6.pvalue"]]
+      mylist[[n]] <- c(length(m1.pvalue[m1.pvalue <0.01]),length(m2.pvalue[m2.pvalue <0.01]),length(m4.pvalue[m4.pvalue <0.01]), length(m6.pvalue[m6.pvalue <0.01]), length(m7.pvalue[m7.pvalue <0.01]))
+    }
+    outdt <- do.call(cbind, mylist)
+    colnames(outdt) <- c(400, 800, 1600)
+    mycol=c("#00AFBB","#2b8cbe","#fdae61","#FF3D2E","darkgreen")
+    #plot(1:dim(outdt)[2],ylim=c(0,max(outdt)*1.1), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+    plot(1:dim(outdt)[2],ylim=c(0,100), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+      title(paste("f0=",i1,",", "beta_gc=(",i2,",","1.513", ")",  sep=" "))
+    #yticks_val <- pretty(outdt)
+    yticks_val <- seq(0,100,20)
+    #axis(2, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(2, at=yticks_val, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(1, at=1:dim(outdt)[2], lab=colnames(outdt))
+    grid()
+    for (r in 1:5){
+      points(outdt[r,],col=mycol[r], pch=19, cex=1.3)
+      lines(outdt[r,],col=mycol[r])
+    }
+    legend("topleft", legend = c("LinearR","LogisticR","Fisher","diffDriver","diffDriver-baseline"), col= mycol, lwd=1, bty="n", lty=rep(NA,5), pch=rep(19,5))
+  }
+}
+
+```
+
+## Continuous phynotype
+
+### Old parameter for baseline model
+
+In this section, we assume $E_i\sim N(\mu,\sigma^2)$ with $\mu=0, \sigma=5$. The relationship between $E_i$ and the samples under selection is given by  $$\log\frac{\pi_i}{1-\pi_i}=\alpha_0+\alpha_1 E_i,$$ 
+where $\pi_i$ represents the probability of sample coming under selection. Here parameters are set as $\alpha_0=0.1, \alpha_1=1$.  
+On log scale, for background mutation rate $f_0$, we consider two cases,  $f_0=0,1$. For samples under selection, the increase of missense mutation rate are $f_m=0,1.2$. The increase of nonsense mutation rate are fixed at $f_{non}=1.51$. For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate. 
+
+```{r,echo=FALSE}
+Nsim=100
+mylist <- list()
+for (i1 in c(0, 1)){
+  for (i2 in c(0, 1.2)){
+    n<-0
+    for(i3 in c(400, 800, 1600)){
+      n <- n+1
+      load(paste0("C:/Users/Jie Zhou/Documents/paper02052022/siming_lab/diff_driver_analysis-main/data/conti_old/power_betaf0=",i1,"_betagc=",i2, "_sample",i3,".Rd"))
+      m1.pvalue<-  simures[["m1.pvalue"]]
+      m2.pvalue <- simures[["m2.pvalue"]]
+      m4.pvalue <- simures[["m4.pvalue"]]
+      m6.pvalue <- simures[["m5.pvalue"]]
+      m7.pvalue <- simures[["m6.pvalue"]]
+      mylist[[n]] <- c(length(m1.pvalue[m1.pvalue <0.01]),length(m2.pvalue[m2.pvalue <0.01]),length(m4.pvalue[m4.pvalue <0.01]), length(m6.pvalue[m6.pvalue <0.01]), length(m7.pvalue[m7.pvalue <0.01]))
+    }
+    outdt <- do.call(cbind, mylist)
+    colnames(outdt) <- c(400, 800, 1600)
+    mycol=c("#00AFBB","#2b8cbe","#fdae61","#FF3D2E","darkgreen")
+    #plot(1:dim(outdt)[2],ylim=c(0,max(outdt)*1.1), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+    plot(1:dim(outdt)[2],ylim=c(0,100), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+    title(paste("f0=",i1,",", "beta_gc=(",i2,",","1.513", ")",  sep=" "))
+    #yticks_val <- pretty(outdt)
+    yticks_val <- seq(0,100,20)
+    #axis(2, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(2, at=yticks_val, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(1, at=1:dim(outdt)[2], lab=colnames(outdt))
+    grid()
+    for (r in 1:5){
+      points(outdt[r,],col=mycol[r], pch=19, cex=1.3)
+      lines(outdt[r,],col=mycol[r])
+    }
+    legend("topleft", legend = c("LinearR","LogisticR","Fisher","diffDriver","diffDriver-baseline"), col= mycol, lwd=1, bty="n", lty=rep(NA,5), pch=rep(19,5))
+
+  }
+}
+
+```
+
+
+
+### New parameter for baseline model
+
+In this section, we assume $E_i\sim N(\mu,\sigma^2)$ with $\mu=0, \sigma=5$. The relationship between $E_i$ and the samples under selection is given by  $$\log\frac{\pi_i}{1-\pi_i}=\alpha_0+\alpha_1 E_i,$$ 
+where $\pi_i$ represents the probability of sample coming under selection. Here parameters are set as $\alpha_0=0.1, \alpha_1=1$.  
+On log scale, for background mutation rate $f_0$, we consider two cases,  $f_0=0,1$. For samples under selection, the increase of missense mutation rate are $f_m=0,1.2$. The increase of nonsense mutation rate are fixed at $f_{non}=1.51$. For samples not under selection, both missense and nonsense mutation rate are same as the background mutation rate. 
+
+```{r,echo=FALSE}
+Nsim=100
+mylist <- list()
+for (i1 in c(0, 1)){
+  for (i2 in c(0, 1.2)){
+    n<-0
+    for(i3 in c(400, 800, 1600)){
+      n <- n+1
+      load(paste0("C:/Users/Jie Zhou/Documents/paper02052022/siming_lab/diff_driver_analysis-main/data/conti_new/power_betaf0=",i1,"_betagc=",i2, "_sample",i3,".Rd"))
+      m1.pvalue<-  simures[["m1.pvalue"]]
+      m2.pvalue <- simures[["m2.pvalue"]]
+      m4.pvalue <- simures[["m4.pvalue"]]
+      m6.pvalue <- simures[["m5.pvalue"]]
+      m7.pvalue <- simures[["m6.pvalue"]]
+      mylist[[n]] <- c(length(m1.pvalue[m1.pvalue <0.01]),length(m2.pvalue[m2.pvalue <0.01]),length(m4.pvalue[m4.pvalue <0.01]), length(m6.pvalue[m6.pvalue <0.01]), length(m7.pvalue[m7.pvalue <0.01]))
+    }
+    outdt <- do.call(cbind, mylist)
+    colnames(outdt) <- c(400, 800, 1600)
+    mycol=c("#00AFBB","#2b8cbe","#fdae61","#FF3D2E","darkgreen")
+    #plot(1:dim(outdt)[2],ylim=c(0,max(outdt)*1.1), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+    plot(1:dim(outdt)[2],ylim=c(0,100), col="white", ylab = "Power", xlab="Number of samples", yaxt="n", xaxt="n")
+       title(paste("f0=",i1,",", "beta_gc=(",i2,",","1.513", ")",  sep=" "))
+    #yticks_val <- pretty(outdt)
+    yticks_val <- seq(0,100,20)
+    #axis(2, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(2, at=yticks_val, lab=paste0(yticks_val/Nsim * 100, " %"),las=2)
+    axis(1, at=1:dim(outdt)[2], lab=colnames(outdt))
+    grid()
+    for (r in 1:5){
+      points(outdt[r,],col=mycol[r], pch=19, cex=1.3)
+      lines(outdt[r,],col=mycol[r])
+    }
+    legend("topleft", legend = c("LinearR","LogisticR","Fisher","diffDriver","diffDriver-baseline"), col= mycol, lwd=1, bty="n", lty=rep(NA,5), pch=rep(19,5))
+
+  }
+}
+
+```

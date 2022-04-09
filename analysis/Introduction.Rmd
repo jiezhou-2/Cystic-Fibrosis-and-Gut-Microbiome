@@ -1,0 +1,24 @@
+---
+title: "Introduction"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+During adaptation, the strength of selection on a gene may vary in different individuals (cancer setting) or species (comparative genomic setting), two scenarios:
+
+  * Different environments: select for different genes/pathways. 
+  * Same environment: but many possible ways of adapting to it, and each individual may evolve a different strategy. 
+	
+For example: species adaptation to cold environment. Both scenarios are possible: (1) In some environment, more fatty foods, and selection of more fat to adapt; in other environments, selection of more hair and furs. (2) Same environmental pressure, but selection on either hair/furs or fat. In either case, species may have different hair and fat. 
+	
+Our goal is to identify genes that drive adaption given the environment or genes that adapting to environment through a certain phenotype. We consider one gene a time and test if it drives adaptation under certain environment or via the given the phenotype. Let $S_i$ be the sequence (mutation) of individual/species $i$, $w_i$ be the selection coefficient on the gene in $i$. $E_i$ be the environment for $i$. Our model is $E_i \rightarrow w_i \rightarrow S_i$. When studying a certain phenotype of the individual $P_i$, we treat the phenotype as a marker of selection and our model is $P_i \rightarrow w_i \rightarrow S_i$. In both cases,$P(S_i| w_i)$, and $w_i = f(P_i)$ or $w_i = f(E_i)$, where we can use $dN/dS$  to model how the sequence/mutation depends on selection. For simplicity, use $E_i$ to represent individual level selection (either environment of phenotype). 
+
+
+
+
+

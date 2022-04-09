@@ -1,0 +1,20 @@
+name: "DiffDriver"
+output_dir: "../docs"
+navbar:
+  title: "DiffDriver"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+    - text: "License"
+      href: license.html
+  right:
+    - icon: fa-github
+      href: https://github.com/szhaolab/diff_driver_analysis
+output:
+  workflowr::wflow_html:
+    toc: true
+    toc_float: true
+    theme: journal
+    highlight: textmate

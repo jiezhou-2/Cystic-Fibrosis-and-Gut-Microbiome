@@ -1,0 +1,30 @@
+---
+title: "Home"
+site: workflowr::wflow_site
+output:
+  workflowr::wflow_html:
+    toc: false
+---
+
+Statistical methods to study differential selection problems in cancer
+
+# Introduction
+[Introduction](Introduction.html)
+
+# Model 
+[Model](model.html)
+
+# Simulations
+
+[Power analysis based on simulations- only mutation count](simulation_power.html)
+
+[Power analysis based on simulations- add one functional feature](simulation_power_FE.html)
+
+[Power analysis based on simulations- add one functional feature-V2](simulation_power_FE2.html)
+
+[Power analysis based on simulations- add one continuois phenotype with update baseline model](simulation_power_binary_conti.html)
+
+# R package
+We have developed an [R package](https://github.com/szhaolab/diffdriver) for our method. Currently it implements the approximated model for binary phenotype. We are extending it to quantitative phenotype.
+
+
