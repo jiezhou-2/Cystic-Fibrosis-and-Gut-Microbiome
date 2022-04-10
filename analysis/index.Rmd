@@ -16,7 +16,7 @@ Statistical methods to study differential selection problems in cancer
 
 ### Principal component analysis of microbiome
 
-[pca of relative abundance of microbiome](pca-of-relative-abundance- of-microbiome.html)
+[pca of relative abundance of microbiome](pca-of-relative-abundance-of-microbiome.html)
 
 ### Explore the effects of microbiome on pulmonary exacerbation
 
