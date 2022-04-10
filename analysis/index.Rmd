@@ -18,10 +18,12 @@ Statistical methods to study differential selection problems in cancer
 
 [pca of relative abundance of microbiome](pca-of-relative-abundance- of-microbiome.html)
 
-### [Proportional hazard model based approach](survival-model.html)
+### Explore the effects of microbiome on pulmonary exacerbation
 
-### [Marginal model based approach](marginal-model.html)
+[Proportional hazard model based approach](survival-model.html)
 
-### [Random-effect model based approaches](random-effect-model.html)
+[Marginal model based approach](marginal-model.html)
+
+[Random-effect model based approaches](random-effect-model.html)
 
 
