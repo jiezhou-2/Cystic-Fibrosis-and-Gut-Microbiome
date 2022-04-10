@@ -16,11 +16,10 @@ Statistical methods to study differential selection problems in cancer
 
 # Data Analysis
 
-[Poisson regression based approach](microbme18_community_wise.html)
+[Proportional hazard model based approach](microbme18_community_wise.html)
 
+[Marginal model based approach](microbme18.html)
 
-[Poisson regression: collective approach](microbme18.html)
-
-[longitudinal model based approaches](microbme18.html)
+[Random-effect model based approaches](microbme18.html)
 
 

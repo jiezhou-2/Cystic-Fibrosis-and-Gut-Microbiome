@@ -8,9 +8,9 @@ author: Jie Zhou
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Model 1: Poisson regression based approach
-## Model 2: Proportional hazard model based approach
-## Model 3: Marginal model based approach
-## Model 4: Random-effect model based approach
+
+## Model 1: Proportional hazard model based approach
+## Model 2: Marginal model based approach
+## Model 3: Random-effect model based approach
 
 
