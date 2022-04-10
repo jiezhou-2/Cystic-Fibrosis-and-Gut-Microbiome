@@ -11,7 +11,7 @@ navbar:
       href: license.html
   right:
     - icon: fa-github
-      href: https://github.com/jiezhou-2/Cystic-Fibrosis-and-Gut-Microbiome.git
+      href: https://github.com/jiezhou-2/Cystic-Fibrosis-and-Gut-Microbiome
 output:
   workflowr::wflow_html:
     toc: true

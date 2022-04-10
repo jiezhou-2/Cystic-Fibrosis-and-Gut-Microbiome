@@ -14,7 +14,7 @@ Statistical methods to study differential selection problems in cancer
 # Model 
 [Model](model.html)
 
-# Simulations
+# Data Analysis
 
 [Poisson regression based approach](microbme18_community_wise.html)
 
