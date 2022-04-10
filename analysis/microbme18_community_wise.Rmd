@@ -1,0 +1,251 @@
+---
+title: "Microbiome Project"
+author: "Jie Zhou"
+date: "03/09/2022"
+output:
+  word_document: default
+  html_document: default
+---
+
+
+# Input the microbiome data: 38 subjects, 82 microbes. These data have undergone log-ratio transfomation and so can be deemed as normal data. As for the Outcome data also is input in a separate file. 
+
+```{r setup, include=FALSE}
+require(data.table)
+require(dplyr)
+require(magrittr)
+require(tidyr)
+library(CVglasso)
+require(igraph)
+require(ggplot2)
+require(intergraph)
+require(GGally)
+library(sna)
+require(glasso)
+require(glmnet)
+require(corrplot)
+set.seed(2)
+# microbiome data
+taxa_raw = read.csv("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/ddata.csv")
+# outcome 
+pulm = read.delim("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/analyst_pulmonary_exacerbation_202110061618.csv")
+# averaging microbiome across time points
+taxa_avg = taxa_raw %>% 
+  group_by(subject) %>% 
+  summarize_all(list(mean))
+
+taxa = taxa_avg[,4:ncol(taxa_avg)]
+```
+
+
+
+
+# Selecting the microbial interaction network using glasso. Here the tuning parameter is recommended based on previous study. Given the selected network, leadeigen algorithm is employed to find the communities in the network. 
+
+```{r}
+#lambda_glasso = seq(0.05, 6, 0.01)
+#cv_glasso_taxa = CVglasso(taxa, K = 5, lam = lambda_glasso)
+#  lam_pick = cv_glasso_taxa$Tuning[2]
+lam_pick=0.75
+glasso_taxa = glasso(cov(taxa), rho = lam_pick)
+pcov_taxa = glasso_taxa$wi
+taxa_nwk = as.matrix(ifelse(pcov_taxa != 0, 1, 0))
+
+# graph theory
+
+taxa_graph = graph.adjacency(taxa_nwk, mode = "undirected")
+taxa_louvain = cluster_louvain(taxa_graph)
+taxa_leadeigen = cluster_leading_eigen(taxa_graph) # This one produces 
+```
+
+# For each of the communities, compute its principal components.
+
+```{r}
+taxa_le_cluster1 = taxa[,which(taxa_leadeigen$membership == 1)]
+taxa_le_pca1 = prcomp(taxa_le_cluster1)
+taxa_le_eigen1 = as.matrix(taxa_le_cluster1) %*% taxa_le_pca1$rotation
+plot(taxa_le_pca1$sdev^2/sum(taxa_le_pca1$sdev^2), type="l", main = "Leading Eigen Cluster 1 PCs", 
+     xlab="principle components", ylab="variance explained")
+plot(taxa_le_eigen1[,1], taxa_le_eigen1[,2], main = "First cluster", 
+     xlab="PCA1", ylab="PCA2")
+summary(taxa_le_pca1)
+taxa_le_cluster2 = taxa[which(taxa_leadeigen$membership == 2)]
+taxa_le_pca2 = prcomp(taxa_le_cluster2)
+taxa_le_eigen2 = as.matrix(taxa_le_cluster2) %*% taxa_le_pca2$rotation
+plot(taxa_le_pca2$sdev^2/sum(taxa_le_pca2$sdev^2), type="l", main = "Leading Eigen Cluster 2 PCs", 
+     xlab="principle components", ylab="variance explained")
+plot(taxa_le_eigen2[,1], taxa_le_eigen2[,2], main = "Second cluster", 
+     xlab="PCA1", ylab="PCA2")
+summary(taxa_le_pca2)
+
+taxa_le_cluster3= taxa[which(taxa_leadeigen$membership == 3)]
+taxa_le_pca3 = prcomp(taxa_le_cluster3)
+taxa_le_eigen3 = as.matrix(taxa_le_cluster3) %*% taxa_le_pca3$rotation
+plot(taxa_le_pca3$sdev^2/sum(taxa_le_pca3$sdev^2), type="l", main = "Leading Eigen Cluster 3 PCs", 
+     xlab="principle components", ylab="variance explained")
+
+plot(taxa_le_eigen3[,1], taxa_le_eigen3[,2], main = "Third cluster", 
+     xlab="PCA1", ylab="PCA2")
+summary(taxa_le_pca3)
+# taxa_le_cluster4= taxa[which(taxa_leadeigen$membership == 4)]
+# taxa_le_pca4 = prcomp(taxa_le_cluster4)
+# taxa_le_eigen4 = as.matrix(taxa_le_cluster4) %*% taxa_le_pca4$rotation
+# plot(taxa_le_pca4$sdev^2/sum(taxa_le_pca4$sdev^2), type="l", main = "Leading Eigen Cluster 4 PCs", 
+#      xlab="principle components", ylab="variance explained")
+# 
+
+# taxa_le_cluster5= taxa[which(taxa_leadeigen$membership == 5)]
+# taxa_le_pca5 = prcomp(taxa_le_cluster5)
+# taxa_le_eigen5 = as.matrix(taxa_le_cluster5) %*% taxa_le_pca5$rotation
+# plot(taxa_le_pca5$sdev^2/sum(taxa_le_pca5$sdev^2), type="l", main = "Leading Eigen Cluster 5 PCs", 
+#      xlab="principle components", ylab="variance explained")
+```
+
+
+
+# Linking Outcome
+
+These are the pulmonary exacerbation events that have been entered into the database. As you will notice, there are often multiple events per person.
+
+Not all patients or patient IDs on this list have a 16S microbiome sequence.
+
+Note that pe_occurence=1 - is a definite yes; 2 is no (but was previously entered as having a PE due to some mild PE symptoms) and 3 is unknown. As a sensitivity analysis, you can exclude 2 and 3 to see if your deductions change. 
+
+If pe_occurence is missing, you can exclude unless the comments indicate otherwise.
+
+Dates are sometimes missing when the pe_date was unknown; use event_date instead,
+
+```{r}
+taxa_short = taxa_avg %>% 
+  filter(subject %in% unique(pulm$patient_id))
+taxa_short$subject
+pulm_new = pulm %>% group_by(patient_id) %>% 
+  filter(patient_id %in% (taxa_avg$subject[unique(taxa_avg$subject) %in%
+                                          unique(pulm$patient_id)]))
+pulm_new$pe_occurance = ifelse(pulm_new$pe_occurance == 1, 1, 0)
+pulm_new = pulm_new %>% 
+  summarise(pulmonary = sum(pe_occurance, na.rm = T))
+colnames(pulm_new) = c("subject", "pe")
+
+taxa_merge = left_join(taxa_short, pulm_new, by = "subject")
+
+View(taxa_merge[c("subject", "pe")])
+```
+
+
+# Poisson regression: first 3 pcs for first cluster
+
+```{r}
+# Get eigentaxa
+index_final = which(taxa_avg$subject %in% taxa_merge$subject)
+taxa_pois = as.data.frame(cbind(taxa_le_eigen1[index_final,1], 
+      taxa_le_eigen1[index_final,2],
+      taxa_le_eigen1[index_final,3],
+      taxa_merge$pe,
+      ifelse(taxa_merge$pe == 0, 0, 1)))
+colnames(taxa_pois) = c("taxa_eigen1", "taxa_eigen2", "taxa_eigen3",
+                        "pe", "pe_bi")
+summary(glm(pe ~ taxa_eigen1, family = "poisson", control = glm.control(maxit = 50),data = taxa_pois))
+
+#require(MASS)
+#model_nb = glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100), data = taxa_pois)
+#exp(model_nb$coefficients)
+#summary(glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100),data = taxa_pois))
+#barplot(table(taxa_pois$pe))
+```
+
+
+# Poisson regression:  first 3 pcs for second cluster
+
+```{r}
+# Get eigentaxa
+index_final = which(taxa_avg$subject %in% taxa_merge$subject)
+taxa_pois = as.data.frame(cbind(taxa_le_eigen2[index_final,1], 
+      taxa_le_eigen2[index_final,2],
+      taxa_le_eigen2[index_final,3],
+      taxa_merge$pe,
+      ifelse(taxa_merge$pe == 0, 0, 1)))
+colnames(taxa_pois) = c("taxa_eigen1", "taxa_eigen2", "taxa_eigen3",
+                        "pe", "pe_bi")
+summary(glm(pe ~ taxa_eigen1, family = "poisson", control = glm.control(maxit = 50),data = taxa_pois))
+
+#require(MASS)
+#model_nb = glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100), data = taxa_pois)
+#exp(model_nb$coefficients)
+#summary(glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100),data = taxa_pois))
+#barplot(table(taxa_pois$pe))
+```
+
+
+# Poisson regression:  first 3 pcs for third cluster
+
+```{r}
+# Get eigentaxa
+taxa_pois = as.data.frame(cbind(taxa_le_eigen1[index_final,1], 
+      taxa_le_eigen2[index_final,1],
+      taxa_le_eigen3[index_final,1],
+      taxa_merge$pe,
+      ifelse(taxa_merge$pe == 0, 0, 1)))
+colnames(taxa_pois) = c("taxa_eigen1", "taxa_eigen2", "taxa_eigen3",
+                        "pe", "pe_bi")
+summary(glm(pe ~ taxa_eigen1 + taxa_eigen2+ taxa_eigen3, family = "poisson", control = glm.control(maxit = 50),data = taxa_pois))
+
+require(MASS)
+#model_nb = glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100), data = taxa_pois)
+#exp(model_nb$coefficients)
+#summary(glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100),data = taxa_pois))
+#barplot(table(taxa_pois$pe))
+```
+
+
+
+
+
+
+# Poisson regression:  first 3 pcs for fourth cluster
+
+```{r}
+# # Get eigentaxa
+# index_final = which(taxa_avg$subject %in% taxa_merge$subject)
+# taxa_pois = as.data.frame(cbind(taxa_le_eigen4[index_final,1], 
+#       taxa_le_eigen4[index_final,2],
+#       taxa_le_eigen4[index_final,3],
+#       taxa_merge$pe,
+#       ifelse(taxa_merge$pe == 0, 0, 1)))
+# colnames(taxa_pois) = c("taxa_eigen1", "taxa_eigen2", "taxa_eigen3",
+#                         "pe", "pe_bi")
+# summary(glm(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, family = "poisson", control = glm.control(maxit = 50),data = taxa_pois))
+
+# require(MASS)
+# model_nb = glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100), data = taxa_pois)
+# exp(model_nb$coefficients)
+# summary(glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100),data = taxa_pois))
+# barplot(table(taxa_pois$pe))
+```
+
+
+
+
+# Poisson regression:  first 3 pcs for fifth cluster
+
+```{r}
+# index_final = which(taxa_avg$subject %in% taxa_merge$subject)
+# taxa_pois = as.data.frame(cbind(taxa_le_eigen5[index_final,1], 
+#       taxa_le_eigen5[index_final,2],
+#       taxa_le_eigen5[index_final,3],
+#       taxa_merge$pe,
+#       ifelse(taxa_merge$pe == 0, 0, 1)))
+# colnames(taxa_pois) = c("taxa_eigen1", "taxa_eigen2", "taxa_eigen3",
+#                         "pe", "pe_bi")
+# summary(glm(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, family = "poisson", control = glm.control(maxit = 50),data = taxa_pois))
+
+# require(MASS)
+# model_nb = glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100), data = taxa_pois)
+# exp(model_nb$coefficients)
+# summary(glm.nb(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, control = glm.control(maxit = 100),data = taxa_pois))
+# barplot(table(taxa_pois$pe))
+```
+
+
+
+

@@ -1,83 +1,16 @@
 ---
 title: "Model"
 output: html_document
-author: Xin He, Siming Zhao
+author: Jie Zhou
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Model
-
-### Modeling of background mutation rate
-When position $j$ in sample $i$ is not under selection, we use the following model to model the number of mutations (basically 0 or 1): 
-
-$$y_{ij} \sim \text{Pois}(\mu_{ij}\lambda_{g})$$
-$$\text{log}(\mu_{ij}) = \beta_jX_j + w_iS_i + \text{log}(\mu_0) $$
-$$\lambda_{g} \sim \text{Gamma}(\alpha, \alpha)$$.
-
-$\mu_{ij}$ captures fixed effects, it corrects the baseline mutation rate ($\mu_0$) using position level covariates ($X_j$) and sample level covariates ($S_i$). The position level covariates may be mutation type, expression level, etc. The sample level covariates may be total number of silent mutations, age, tumor grade, etc. 
-$\lambda_{g}$ captures gene level overdispersion of mutation rate.
-
-Note as $y_{ij} \in {0,1}$, this should be a Bernoulli distribution, but as the mutation rate is small, we can use Poisson distribution to approximate.
-
-### Modeling of selection
-
-Let $Z_i$ be the indicator of whether a gene of interest is under selection in sample $i$, and $\gamma$ be the effect size if the gene is under selection. Then our model of $y_{ij}$ is the number of mutations in sample $i$ at position $j$ is: 
-
-$$y_{ij} \sim \text{Pois}(Z_i \gamma_j \mu_{ij} + (1-Z_i) \mu_{ij})$$
-
-where $\mu_{ij}$ is the mutation rate of sample $i$ at position $j$. where $\gamma_j$ is assumed to be position-specific, but does not change across samples (i.e. sample variation of selection is entirely modeled by $Z_i$). $\gamma_j$ is usally used to capture the increase of mutation rate at functionally impartant positions (similarly as described in the driverMAPS model).
-
-We assume a model of $Z_i$ as: 
-$$Z_i \sim \text{Ber}(\pi_i) \qquad \log \frac{\pi_i}{1-\pi_i} = \alpha_0 + \alpha_1 E_i$$
-
-## Model inference
-
-### For background mutation model
-
-If we sum across all samples at position $j$, the model becomes
-$$y_i \sim \text{Pois}(\mu_i\lambda_g)$$.
-
-This is the same as driverMAPS model. Thus we could use estimates from driverMAPS for $\beta_j$ and $\alpha$, 
-
-If we sum across all positions in a gene $g$, the model becomes
-
-$$y_{gi} \sim \text{Pois}(\mu_{gi}\lambda_g)$$
-where $y_{gi}$ is the number of mutations in gene $g$ in sample $i$, we can use the likelihood of $y_{gi}$ to get MLE of $w_i$. 
-
-### For selection model
-For each gene, the likelihood is
-$$\begin{aligned}
-P(y|\alpha, E, \mu, \gamma) &= \prod_i\prod_j(P(y_{ij}|Z_i=1)P(Z_i=1) + P(y_{ij}|  Z_i=0)P(Z_i  = 0)) \\
-&= \prod_i\prod_j (\text{Pois}(y_{ij}; \gamma_j\mu_{ij}) * \pi_i(E_i) + \text{Pois}(y_{ij}; \mu_{ij})* (1-\pi_i(E_i)))
- \end{aligned}$$
- 
-Under $H_0$ (null hypothesis), i.e. there is no differential selection, $\alpha_1 =0$. The parameter we want to estimate is $\alpha_0$.  Under $H_1$ (alternative hypothesis), $\alpha_1 \neq 0$, there are two parameters we want to estimate, $\alpha_0$ and $alpha_1$. We use R function `optim` to infer parameters and perform likelihood ratio test ($H_1$ vs. $H_0$) of for each gene. 
-
-We assume $\gamma_j$ is the same for all genes and use its estimate from driverMAPS.
-
-## Approximation of individual level model in two group comparison
-suppose our problem is to test if selection differs between groups.
-
-We can sum over all samples and obtain the distribution for position $j$ as: 
-$$y_j \sim \text{Pois}\left( (\gamma_j-1) \sum_i Z_i \mu_{ij} + \mu_j \right)$$
-
-$$0 \leq \sum_i Z_i \mu_{ij} \leq \sum_i \mu_{ij} = \mu_j$$
-	
-and the ratio $\sum_i Z_i \mu_{ij} / \mu_j$ is a measure of strength of selection, roughly the percent of samples under selection. Let this ratio be $\lambda$. So the problem is to test if this ratio differs between two groups. Specifically, our model is now: 
-
-$$ y_{1j} \sim \text{Pois}\left( \lambda_1 (\gamma_j-1) \mu_{1j} + \mu_{1j} \right) \qquad y_{0j} \sim \text{Pois}\left( \lambda_0 (\gamma_j-1) \mu_{0j} + \mu_{0j} \right) $$
-where $\mu_{1j}$ and $\mu_{0j}$ are mutation rates in the two groups. Our problem is to test $H_0: \lambda_1 = \lambda_0$ vs. $H_1: \lambda_1 \neq \lambda_0$. 
-
-A simple model for multiple categories of mutations: we assume each mutation belongs to one of several categories, $j$. Then Equation can be applied with $\gamma_j$ effect size (dN/dS) of category $j$, $\mu_{1j}$ and $\mu_{0j}$ mutation rates of category $j$ in the two groups. 
-
-Ex. suppose we have two categories LoF and missense with effect size 5 and 2, respectively. In two groups, we may have $\lambda_1 = 2$ and $\lambda_2 = 0.5$, then the effect sizes in the groups become: (1) Group 1: 9 and 3; (2) Group 2: 3 and 1.5. 
-		
-Model parameterization: When $\gamma_j$'s are estimated from the data, then we should have $\lambda_1 = \lambda_0 = 1$ under $H_0$. Under $H_1$, we expect one group has $\lambda> 1$, and the other $<1$. When we use $\gamma_j$ that we learned previously in the model (pre-trained, e.g. average over all tumor types), it's possible that $\lambda$ deviate from 1 even under $H_0$. This accounts for systematic over- or under-estimation of effect sizes in a particular tumor dataset. It may be possible to ``calibrate'' $\gamma_j$ for a particular dataset first, before testing $\lambda$. 
-	
-## Analysis of model
-why incorporating functional features improves performance than simple regression or binomial test? Suppose we have two types of mutations: Damaging and Benign, and only Damaging mutations are under positive selection. Consider this example: a gene has 2 Benign mutation in the background group, and 5 Damaging mutations in the positive group. In the naive model of no functional annotation: the difference is subtle (2 vs. 5). In the model with annotations, the model knows that the different Benign mutation counts do not matter (likelihood cancels out). The Damaging mutation counts in the f.g. vs. b.g. groups are now: 5 vs. 0. So the difference between the two groups becomes ``sharper''. 
+## Model 1: Poisson regression based approach
+## Model 2: Proportional hazard model based approach
+## Model 3: Marginal model based approach
+## Model 4: Random-effect model based approach
 
 

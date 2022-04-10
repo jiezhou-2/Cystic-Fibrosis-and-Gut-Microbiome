@@ -16,11 +16,11 @@ Statistical methods to study differential selection problems in cancer
 
 # Simulations
 
-[Power analysis based on simulations- only mutation count](simulation_power.html)
+[Poisson regression: community-wise approach](microbme18_community_wise.html)
 
 
-[Power analysis based on simulations- add one continuois phenotype with update baseline model](simulation_power_binary_conti.html)
+[Poisson regression: collective approach](microbme18.html)
 
-# R package
+
 
 
