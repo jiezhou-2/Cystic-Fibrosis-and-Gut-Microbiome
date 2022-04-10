@@ -9,7 +9,7 @@ output:
 
 
 
-# Input the microbiome data: 38 subjects, 82 microbes. These data have undergone log-ratio transfomation and so can be deemed as normal data. As for the Outcome data also is input in a separate file.
+### Input the microbiome data: 38 subjects, 82 microbes. These data have undergone log-ratio transfomation and so can be deemed as normal data. As for the Outcome data also is input in a separate file.
 
 ```{r setup,echo=F, include=FALSE}
 require(data.table)
@@ -25,8 +25,11 @@ library(sna)
 require(glasso)
 require(glmnet)
 require(corrplot)
+```
 
-#taxa_all = read.csv("")
+
+
+```{r}
 taxa_raw = read.csv("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/ddata.csv")
 pulm = read.delim("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/analyst_pulmonary_exacerbation_202110061618.csv")
 variable.names(pulm)
@@ -40,53 +43,30 @@ taxa = taxa_avg[,4:ncol(taxa_avg)]
 ```
 
 
-# Selecting the microbial interaction network using glasso. Here the tuning parameter is recommended based on previous study. Given the selected network, leadeigen algorithm is employed to find the communities in the network. 
+### Selecting the microbial interaction network using glasso. Here the tuning parameter is recommended based on previous study. Given the selected network, leadeigen algorithm is employed to find the communities in the network. 
 
-```{r,echo=F}
+```{r}
 set.seed(2)
 # lambda_glasso = seq(0.05, 6, 0.01)
 # cv_glasso_taxa = CVglasso(taxa, K = 5, lam = lambda_glasso)
 #   lam_pick = cv_glasso_taxa$Tuning[2]
 lam_pick=0.75
-### asymptotic distribution of hyper parameter
-# lam_pick = rep(NA, 1)
-# for (i in 1 : 1) {
-#   cv_glasso_taxa = CVglasso(taxa, K = 5, lam = lambda_glasso, trace = "none")
-#   lam_pick[i] = cv_glasso_taxa$Tuning[2]
-#   print(i)
-# }
-# hist(lam_pick)
-# lam_pick = as.data.frame(lam_pick)
-# my_lambdas = read.csv("lambdas.csv")
-###
-
-#glasso_taxa = glasso(cov(taxa), rho = cv_glasso_taxa$Tuning[2])
 glasso_taxa = glasso(cov(taxa), rho = lam_pick)
 pcov_taxa = glasso_taxa$wi
-#pcov_taxa = cov2cor(pcor_taxa)
 taxa_nwk = as.matrix(ifelse(pcov_taxa != 0, 1, 0))
-#corrplot(taxa_nwk, type = "upper", diag = T, tl.col = "white")
-
 # graph theory
 
 taxa_graph = graph.adjacency(taxa_nwk, mode = "undirected")
 taxa_louvain = cluster_louvain(taxa_graph)
 taxa_leadeigen = cluster_leading_eigen(taxa_graph) # This one produces fewer modules (clusters)
-
-
-#plot(simplify(taxa_graph), vertex.label=NA, vertex.size=5, vertex.color = taxa_louvain$membership)
-#ggnet2(taxa_graph, color = taxa_louvain$membership, size = "degree")
-#ggnet2(taxa_graph, color = taxa_leadeigen$membership, size = "degree")
 ```
 
-# For each of the communities, compute its principal components.
 
 
 
 
-
-# For each of the communities, compute its principal components.
-```{r,echo=F}
+### For each of the communities, compute its principal components.
+```{r}
 colnames(taxa[which(taxa_leadeigen$membership == 3)])
 
 taxa_le_cluster1 = taxa[which(taxa_leadeigen$membership == 1)]
@@ -115,19 +95,6 @@ plot(taxa_le_pca3$sdev^2/sum(taxa_le_pca3$sdev^2), type="l", main = "Leading Eig
 plot(taxa_le_eigen3[,1], taxa_le_eigen3[,2], main = "Third cluster", 
      xlab="PCA1", ylab="PCA2")
 summary(taxa_le_pca3)
-
-# taxa_le_cluster4= taxa[which(taxa_leadeigen$membership == 4)]
-# taxa_le_pca4 = prcomp(taxa_le_cluster4)
-# taxa_le_eigen4 = as.matrix(taxa_le_cluster4) %*% taxa_le_pca4$rotation
-# plot(taxa_le_pca4$sdev^2/sum(taxa_le_pca4$sdev^2), type="l", main = "Leading Eigen Cluster 4 PCs", 
-#      xlab="principle components", ylab="variance explained")
-# 
-
-# taxa_le_cluster5= taxa[which(taxa_leadeigen$membership == 5)]
-# taxa_le_pca5 = prcomp(taxa_le_cluster5)
-# taxa_le_eigen5 = as.matrix(taxa_le_cluster5) %*% taxa_le_pca5$rotation
-# plot(taxa_le_pca5$sdev^2/sum(taxa_le_pca5$sdev^2), type="l", main = "Leading Eigen Cluster 5 PCs", 
-#      xlab="principle components", ylab="variance explained")
 ```
 
 
@@ -144,7 +111,7 @@ If pe_occurence is missing, you can exclude unless the comments indicate otherwi
 
 Dates are sometimes missing when the pe_date was unknown; use event_date instead,
 
-```{r,echo=F}
+```{r}
 taxa_short = taxa_avg %>% 
   filter(subject %in% unique(pulm$patient_id))
 taxa_short$subject
@@ -158,7 +125,7 @@ colnames(pulm_new) = c("subject", "pe")
 
 taxa_merge = left_join(taxa_short, pulm_new, by = "subject")
 
-View(taxa_merge[c("subject", "pe")])
+#View(taxa_merge[c("subject", "pe")])
 ```
 
 

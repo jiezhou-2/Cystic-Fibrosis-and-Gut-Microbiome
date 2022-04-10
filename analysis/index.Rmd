@@ -8,18 +8,20 @@ output:
 
 Statistical methods to study differential selection problems in cancer
 
-# Introduction
+## Introduction
 [Introduction](Introduction.html)
 
-# Model 
-[Model](model.html)
 
-# Data Analysis
+## Data Analysis
 
-[Proportional hazard model based approach](microbme18_community_wise.html)
+### Principal component analysis of microbiome
 
-[Marginal model based approach](microbme18.html)
+[pca of relative abundance of microbiome](pca-of-relative-abundance- of-microbiome.html)
 
-[Random-effect model based approaches](microbme18.html)
+### [Proportional hazard model based approach](survival-model.html)
+
+### [Marginal model based approach](marginal-model.html)
+
+### [Random-effect model based approaches](random-effect-model.html)
 
 
