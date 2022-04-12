@@ -20,7 +20,7 @@ Statistical methods to study differential selection problems in cancer
 
 ### Explore the effects of microbiome on pulmonary exacerbation
 
-[Poisson regression model based approach](Poisson-regression-model.html)
+[Poisson regression model based approach](Poission-regression-model.html)
 
 [Proportional hazard model based approach](survival-model.html)
 
