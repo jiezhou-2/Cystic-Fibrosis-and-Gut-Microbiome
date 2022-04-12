@@ -1,6 +1,6 @@
 ---
 title: "Microbiome Project"
-author: "Tony Chen"
+author: "Jie Zhou"
 date: "11/9/2021"
 output:
   word_document: default
@@ -31,9 +31,6 @@ require(corrplot)
 
 ```{r}
 taxa_raw = read.csv("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/ddata.csv")
-pulm = read.delim("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/analyst_pulmonary_exacerbation_202110061618.csv")
-variable.names(pulm)
-
 # averaging across time points
 taxa_avg = taxa_raw %>% 
   group_by(subject) %>% 
@@ -98,68 +95,4 @@ summary(taxa_le_pca3)
 ```
 
 
-
-# Linking Outcome
-
-These are the pulmonary exacerbation events that have been entered into the database. As you will notice, there are often multiple events per person.
-
-Not all patients or patient IDs on this list have a 16S microbiome sequence.
-
-Note that pe_occurence=1 - is a definite yes; 2 is no (but was previously entered as having a PE due to some mild PE symptoms) and 3 is unknown. As a sensitivity analysis, you can exclude 2 and 3 to see if your deductions change. 
-
-If pe_occurence is missing, you can exclude unless the comments indicate otherwise.
-
-Dates are sometimes missing when the pe_date was unknown; use event_date instead,
-
-```{r}
-taxa_short = taxa_avg %>% 
-  filter(subject %in% unique(pulm$patient_id))
-taxa_short$subject
-pulm_new = pulm %>% group_by(patient_id) %>% 
-  filter(patient_id %in% (taxa_avg$subject[unique(taxa_avg$subject) %in%
-                                          unique(pulm$patient_id)]))
-pulm_new$pe_occurance = ifelse(pulm_new$pe_occurance == 1, 1, 0)
-pulm_new = pulm_new %>% 
-  summarise(pulmonary = sum(pe_occurance, na.rm = T))
-colnames(pulm_new) = c("subject", "pe")
-
-taxa_merge = left_join(taxa_short, pulm_new, by = "subject")
-
-#View(taxa_merge[c("subject", "pe")])
-```
-
-
-# Poisson regression: first pcs for each of three clusters
-
-```{r}
-# Get eigentaxa
-index_final = which(taxa_avg$subject %in% taxa_merge$subject)
-## first pc for each cluster
-taxa_pois = as.data.frame(cbind(taxa_le_eigen1[index_final,1], 
-      taxa_le_eigen2[index_final,1],
-      taxa_le_eigen3[index_final,1],
-      taxa_merge$pe,
-      ifelse(taxa_merge$pe == 0, 0, 1)))
-colnames(taxa_pois) = c("taxa_eigen1", "taxa_eigen2", "taxa_eigen3",
-                        "pe", "pe_bi")
-summary(glm(pe ~ taxa_eigen1 + taxa_eigen2 + taxa_eigen3, family = "poisson", control = glm.control(maxit = 50),data = taxa_pois))
-```
-
-# Poisson regression: first pcs for each of three clusters
-
-```{r}
-# Get eigentaxa
-index_final = which(taxa_avg$subject %in% taxa_merge$subject)
-## first pc for each cluster
-taxa_pois = as.data.frame(cbind(taxa_le_eigen1[index_final,1], taxa_le_eigen1[index_final,2], 
-      taxa_le_eigen2[index_final,1],
-      taxa_le_eigen2[index_final,2], 
-      taxa_le_eigen3[index_final,1],
-      taxa_le_eigen3[index_final,2], 
-      taxa_merge$pe,
-      ifelse(taxa_merge$pe == 0, 0, 1)))
-colnames(taxa_pois) = c("taxa_eigen11","taxa_eigen12", "taxa_eigen21","taxa_eigen22", "taxa_eigen31","taxa_eigen32",
-                        "pe", "pe_bi")
-summary(glm(pe ~ taxa_eigen11 + taxa_eigen12+ taxa_eigen21 +  taxa_eigen22+ taxa_eigen31+ taxa_eigen32, family = "poisson", control = glm.control(maxit = 50),data = taxa_pois))
-```
 

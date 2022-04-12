@@ -16,9 +16,11 @@ Statistical methods to study differential selection problems in cancer
 
 ### Principal component analysis of microbiome
 
-[pca of relative abundance of microbiome](pca-of-relative-abundance-of-microbiome.html)
+[PCA of relative abundance of microbiome](pca-of-relative-abundance-of-microbiome.html)
 
 ### Explore the effects of microbiome on pulmonary exacerbation
+
+[Poisson regression model based approach](Poisson-regression-model.html)
 
 [Proportional hazard model based approach](survival-model.html)
 

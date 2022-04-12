@@ -31,17 +31,14 @@ require(corrplot)
 
 ```{r}
 taxa_raw = read.csv("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/ddata.csv")
-pulm = read.delim("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/analyst_pulmonary_exacerbation_202110061618.csv")
-variable.names(pulm)
-
 # averaging across time points
 taxa_avg = taxa_raw %>% 
   group_by(subject) %>% 
   summarize_all(list(mean))
 
 taxa = taxa_avg[,4:ncol(taxa_avg)]
+pulm = read.delim("C:/Users/Jie Zhou/Documents/paper02052022/longitudinalOutcome/Cystic-Fibrosis-and-Gut-Microbiome/data/analyst_pulmonary_exacerbation_202110061618.csv")
 ```
-
 
 ### Selecting the microbial interaction network using glasso. Here the tuning parameter is recommended based on previous study. Given the selected network, leadeigen algorithm is employed to find the communities in the network. 
 
@@ -98,7 +95,6 @@ summary(taxa_le_pca3)
 ```
 
 
-
 # Linking Outcome
 
 These are the pulmonary exacerbation events that have been entered into the database. As you will notice, there are often multiple events per person.
@@ -112,13 +108,12 @@ If pe_occurence is missing, you can exclude unless the comments indicate otherwi
 Dates are sometimes missing when the pe_date was unknown; use event_date instead,
 
 ```{r}
+
 taxa_short = taxa_avg %>% 
   filter(subject %in% unique(pulm$patient_id))
-taxa_short$subject
 pulm_new = pulm %>% group_by(patient_id) %>% 
-  filter(patient_id %in% (taxa_avg$subject[unique(taxa_avg$subject) %in%
-                                          unique(pulm$patient_id)]))
-pulm_new$pe_occurance = ifelse(pulm_new$pe_occurance == 1, 1, 0)
+  filter(patient_id %in% (taxa_avg$subject[taxa_avg$subject %in% unique(pulm$patient_id)]))
+pulm_new$pe_occurance = ifelse(pulm_new$pe_occurance <=1, 1, 0)
 pulm_new = pulm_new %>% 
   summarise(pulmonary = sum(pe_occurance, na.rm = T))
 colnames(pulm_new) = c("subject", "pe")

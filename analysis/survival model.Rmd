@@ -1,6 +1,6 @@
 ---
 title: "Microbiome Project"
-author: "Tony Chen"
+author: "Jie Zhou"
 date: "11/9/2021"
 output:
   word_document: default
